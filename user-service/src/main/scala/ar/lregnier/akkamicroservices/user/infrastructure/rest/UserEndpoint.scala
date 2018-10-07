@@ -35,10 +35,7 @@ class UserEndpoint(userManager: ActorRef, userLookup: ActorRef) extends RestEndp
   import UserEndpoint._
 
   override def routes: Route =
-    path("test") {
-      complete("hola")
-    } ~
-      pathPrefix("users") {
-        crudRoutes(userManager, userLookup)
-      }
+    pathPrefix("users") {
+      crudRoutes(userManager, userLookup)
+    }
 }
