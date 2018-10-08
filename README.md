@@ -22,19 +22,16 @@ It contains all common abstractations used for writing _Unit_ and _Integration_ 
 
 This project should depend only on `common`.
 
-#### On services projects: 
-Services projects should not depend on any other services project, but only on domain and common projects.
-
 ## Hexagonal Architecture
 An [Hexagonal Architecture] has been chosen to structure each microservice project. The Hexagonal Architecture reinforces the separation of business logic from technical concerns which is a key aspect in a microservices environment where different communication technologies and protocols may take place (such as REST, GraphQL, gRPC, messaging queues, etc).
 
-The Hexagonal Architecture defines mainly two distinct layers: the _inside_ and the _outside_. The former holds all of the domain objects and components while the latter houses all of the technical components which will facilitate access to the inner layer. Those are named _domain_ and _infrastructure_ respectively in this project:
+The Hexagonal Architecture defines mainly two distinct layers: the _inside_ and the _outside_. The former holds all of the domain objects and components while the latter houses all of the technical components which facilitate access from and to the inner layer. Those are named _domain_ and _infrastructure_ respectively in this project:
 
 ```
 microservice
 ├── domain
-│   ├── services
-│   └── model
+│   ├── model
+│   └── services
 ├── infrastrucuture
 │   ├── rest
 │   ├── grpc

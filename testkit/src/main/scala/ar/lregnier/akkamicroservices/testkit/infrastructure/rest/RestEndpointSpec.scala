@@ -6,10 +6,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import ar.lregnier.akkamicroservices.common.infrastructure.rest.Json4sJacksonSupport
 import org.scalatest.{Matchers, WordSpecLike}
 
-trait RestEndpointSpec
-    extends WordSpecLike
-    with Matchers
-    with ScalatestRouteTest { self =>
+trait RestEndpointSpec extends WordSpecLike with Matchers with ScalatestRouteTest { self =>
 
   trait RestEndpointScope extends Json4sJacksonSupport {
     val routes: Route
