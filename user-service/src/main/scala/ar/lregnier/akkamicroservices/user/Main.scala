@@ -10,7 +10,7 @@ trait AkkaModule {
 
 trait DomainModule { self: AkkaModule =>
   lazy val userManager = actorSystem.actorOf(FromConfig.props(UserManager.props()), UserManager.Name)
-  lazy val userLookup = actorSystem.actorOf(FromConfig.props(UserManager.props()), UserLookup.Name)
+  lazy val userLookup = actorSystem.actorOf(FromConfig.props(UserLookup.props()), UserLookup.Name)
 }
 
 trait RestModule { self: AkkaModule with DomainModule =>

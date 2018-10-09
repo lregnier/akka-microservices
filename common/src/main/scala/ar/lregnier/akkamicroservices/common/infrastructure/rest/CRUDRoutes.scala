@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
 
 // scalastyle:off
 trait CRUDRoutes {
-  self: Directives with Json4sJacksonSupport with DefaultAskSupport with ResponseHandling with ImplicitTranslations =>
+  self: Directives with Json4sJacksonSupport with DefaultAskSupport with ResponseHandling =>
 
   def create[In <: Representation, D <: CreateEntityPayload, E <: Entity: ClassTag, Out <: Representation](
       managerActor: ActorRef
@@ -34,7 +34,7 @@ trait CRUDRoutes {
       lookupActor: ActorRef
   )(implicit responseTranslator: Translator[E, Out]): Route =
     (path(JavaUUID) & get) { id =>
-      onSuccess((lookupActor ? RetrieveEntity(Id(id.toString))).mapTo[Option[E]]) {
+      onSuccess((lookupActor ? RetrieveEntity(Id.fromUUID(id))).mapTo[Option[E]]) {
         case Some(entity) => respond(entity)
         case None         => respond(StatusCodes.NotFound)
       }
@@ -45,7 +45,7 @@ trait CRUDRoutes {
   )(implicit requestTranslator: Translator[In, Data], responseTranslator: Translator[E, Out], m: Manifest[In]): Route =
     (path(JavaUUID) & put & entity(as[In])) { (id, representation) =>
       val payload = requestTranslator.translate(representation)
-      val msg = UpdateEntity(Id(id.toString), payload)
+      val msg = UpdateEntity(Id.fromUUID(id), payload)
       onSuccess((managerActor ? msg).mapTo[Option[E]]) {
         case Some(entity) => respond(entity)
         case None         => respond(StatusCodes.NotFound)
@@ -53,8 +53,8 @@ trait CRUDRoutes {
     }
 
   def remove[E <: Entity: ClassTag](managerActor: ActorRef): Route =
-    (path(LongNumber) & delete) { id =>
-      onSuccess((managerActor ? DeleteEntity(Id(id.toString))).mapTo[Option[E]]) {
+    (path(JavaUUID) & delete) { id =>
+      onSuccess((managerActor ? DeleteEntity(Id.fromUUID(id))).mapTo[Option[E]]) {
         case Some(_) => respond(StatusCodes.NoContent)
         case None    => respond(StatusCodes.NotFound)
       }

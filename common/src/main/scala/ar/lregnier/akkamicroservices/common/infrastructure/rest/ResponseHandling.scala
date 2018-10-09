@@ -5,6 +5,10 @@ import akka.http.scaladsl.server.{Directives, StandardRoute}
 import ar.lregnier.akkamicroservices.common.domain.model.DomainObject
 import ar.lregnier.akkamicroservices.common.infrastructure.Translator
 
+/**
+  * Adds common respond methods which prevent leaking Domain Objects
+  * into the HTTP responses. It enforces the use of Representations instead.
+  */
 trait ResponseHandling {
   self: Directives with Json4sJacksonSupport =>
 

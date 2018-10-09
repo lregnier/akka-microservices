@@ -22,8 +22,8 @@ object RestServer {
 
     val settings = HttpServerSettings(system)
     val (host, port) = (settings.host, settings.port)
-    val resourcesRoutes = restEndpoints.map(_.routes).reduce(_ ~ _)
-    val routes = DefaultRoutes.buildRoutes(resourcesRoutes)
+    val restRoutes = restEndpoints.map(_.routes).reduce(_ ~ _)
+    val routes = DefaultRoutes.buildRoutes(restRoutes)
 
     val shutdown = CoordinatedShutdown(system)
 
@@ -52,7 +52,7 @@ object DefaultRoutes {
 
   def buildRoutes(apiRoutes: Route): Route =
     defaultRoutes ~
-      path("api") {
+      pathPrefix("api") {
         apiRoutes
       }
 }

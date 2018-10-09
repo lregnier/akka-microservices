@@ -20,6 +20,13 @@ case class Id(value: String) extends DomainObject {
 }
 
 /**
+  * Companion object for Id
+  */
+object Id {
+  def fromUUID(uuid: UUID): Id = Id(uuid.toString)
+}
+
+/**
   * Base trait for building Entities
   */
 trait Entity extends DomainObject {
