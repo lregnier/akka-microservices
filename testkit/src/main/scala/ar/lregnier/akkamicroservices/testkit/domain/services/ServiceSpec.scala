@@ -1,8 +1,11 @@
 package ar.lregnier.akkamicroservices.testkit.domain.services
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Status}
 import akka.testkit._
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, Suite, WordSpecLike}
+
+import scala.reflect.ClassTag
 
 trait ServiceSpec
     extends ImplicitSystem
@@ -11,13 +14,21 @@ trait ServiceSpec
     with ImplicitSender
     with WordSpecLike
     with Matchers
+    with MockFactory
     with StopSystemAfterAll {
 
-  trait ServiceScope {
+  trait ServiceScope extends FailureExpectationSupport {
     val service: ActorRef
+  }
 
-    // CallingThreadDispatcher is used here to make testing execution synchronous
-    implicit val ec = system.dispatchers.lookup(CallingThreadDispatcher.Id)
+  trait FailureExpectationSupport { self: ServiceScope =>
+    def expectMsgFailure(t: Throwable): Status.Failure =
+      expectMsg(Status.Failure(t))
+
+    def expectMsgFailureType[T <: Throwable: ClassTag]: Status.Failure =
+      expectMsgPF() {
+        case msg @ Status.Failure(_: T) => msg
+      }
   }
 
 }

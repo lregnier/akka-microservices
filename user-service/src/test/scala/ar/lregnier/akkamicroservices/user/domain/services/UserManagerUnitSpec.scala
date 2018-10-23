@@ -2,63 +2,158 @@ package ar.lregnier.akkamicroservices.user.domain.services
 
 import java.util.UUID
 
-import akka.testkit.TestActorRef
 import ar.lregnier.akkamicroservices.common.domain.model.Id
-import ar.lregnier.akkamicroservices.common.domain.services.{CreateEntity, DeleteEntity, UpdateEntity}
+import ar.lregnier.akkamicroservices.common.domain.services._
 import ar.lregnier.akkamicroservices.testkit.domain.services.ServiceSpec
 import ar.lregnier.akkamicroservices.user.domain.model.User
+import ar.lregnier.akkamicroservices.user.domain.persistence.UserRepository
 import ar.lregnier.akkamicroservices.user.domain.services.UserManager.CreateUpdateUserPayload
 
-class UserManagerUnitSpec extends ServiceSpec {
+import scala.concurrent.Future
 
+// scalastyle:off
+class UserManagerUnitSpec extends ServiceSpec {
   // Fixtures
-  val userId = Id(UUID.randomUUID().toString)
-  val nonExistentUserId = Id(UUID.randomUUID().toString)
-  val firstName = "First name"
-  val lastName = "Last name"
-  val userEntity = User(userId, firstName, lastName)
+  val userId = Id.fromUUID(UUID.randomUUID())
+  val nonExistentUserId = Id.fromUUID(UUID.randomUUID())
+  val firstName = "John"
+  val lastName = "Doe"
+  val user = User(userId, firstName, lastName)
 
   trait Scope extends ServiceScope {
-    val service = TestActorRef(new UserManager())
+    val userRepository = mock[UserRepository]
+    val service = system.actorOf(UserManager.props(userRepository))
   }
 
-  "When sending a CreateEntity msg, the service" should {
-    "respond with the created User if no errors" in new Scope {
-      val firstName = "Create name"
-      val lastName = "Create description"
+  "When receiving a CreateEntity msg, it" should {
+    "create a new Entity if no errors and return it back" in new Scope {
+      // Set expectations
+      (userRepository.nextId _).expects().returning(Future.successful(userId))
+      (userRepository.save _).expects(user).returning(Future.successful(user))
 
+      // Send msg
       service ! CreateEntity(CreateUpdateUserPayload(firstName, lastName))
 
-      expectMsgPF() {
-        case User(_, createdFirstName, createdLastName) =>
-          createdFirstName shouldEqual firstName
-          createdLastName shouldEqual lastName
-      }
+      // Verify
+      expectMsg(user)
+    }
+    "return a failure msg if there's an error while asking for the Entity's Id" in new Scope {
+      // Set expectations
+      val unexpectedException = new Exception("BOOM!")
+      (userRepository.nextId _).expects().returning(Future.failed(unexpectedException))
+
+      // Send msg
+      service ! CreateEntity(CreateUpdateUserPayload(firstName, lastName))
+
+      // Verify
+      expectMsgFailure(unexpectedException)
+    }
+    "return a failure msg if there's an error while saving the Entity" in new Scope {
+      // Set expectations
+      val unexpectedException = new Exception("BOOM!")
+      (userRepository.nextId _).expects().returning(Future.successful(userId))
+      (userRepository.save _).expects(user).returning(Future.failed(unexpectedException))
+
+      // Send msg
+      service ! CreateEntity(CreateUpdateUserPayload(firstName, lastName))
+
+      // Verify
+      expectMsgFailure(unexpectedException)
     }
   }
 
-  "When sending an UpdateEntity msg, the service" should {
-    "respond with the updated User if it exists" in new Scope {
-      val id = userId
-      val firstName = "Update first name"
-      val lastName = "Update last name"
+  "When receiving an UpdateEntity msg, it" should {
+    "update the requested Entity if no errors and return it back" in new Scope {
+      val updatedFirstName = "Richard"
+      val updatedLastName = "Roe"
+      val updatedUser = user.copy(firstName = updatedFirstName, lastName = updatedLastName)
 
-      service ! UpdateEntity(id, CreateUpdateUserPayload(firstName, lastName))
+      // Set expectations
+      (userRepository.find _).expects(userId).returning(Future.successful(Some(user)))
+      (userRepository.save _).expects(updatedUser).returning(Future.successful(updatedUser))
 
-      expectMsg(Some(User(id, firstName, lastName)))
+      // Send msg
+      service ! UpdateEntity(userId, CreateUpdateUserPayload(updatedFirstName, updatedLastName))
+
+      // Verify
+      expectMsg(Some(updatedUser))
+    }
+    "return None if the requested Entity cannot be found" in new Scope {
+      val updatedFirstName = "Richard"
+      val updatedLastName = "Roe"
+
+      // Set expectations
+      (userRepository.find _).expects(nonExistentUserId).returning(Future.successful(None))
+
+      // Send msg
+      service ! UpdateEntity(nonExistentUserId, CreateUpdateUserPayload(updatedFirstName, updatedLastName))
+
+      // Verify
+      expectMsg(None)
+    }
+    "return a failure msg if there's an error while finding the Entity" in new Scope {
+      val updatedFirstName = "Richard"
+      val updatedLastName = "Roe"
+
+      // Set expectations
+      val unexpectedException = new Exception("BOOM!")
+      (userRepository.find _).expects(userId).returning(Future.failed(unexpectedException))
+
+      // Send msg
+      service ! UpdateEntity(userId, CreateUpdateUserPayload(updatedFirstName, updatedLastName))
+
+      // Verify
+      expectMsgFailure(unexpectedException)
+    }
+    "return a failure msg if there's an error while saving the Entity" in new Scope {
+      val updatedFirstName = "Richard"
+      val updatedLastName = "Roe"
+      val updatedUser = user.copy(firstName = updatedFirstName, lastName = updatedLastName)
+
+      // Set expectations
+      val unexpectedException = new Exception("BOOM!")
+      (userRepository.find _).expects(userId).returning(Future.successful(Some(user)))
+      (userRepository.save _).expects(updatedUser).returning(Future.failed(unexpectedException))
+
+      // Send msg
+      service ! UpdateEntity(userId, CreateUpdateUserPayload(updatedFirstName, updatedLastName))
+
+      // Verify
+      expectMsgFailure(unexpectedException)
     }
   }
 
-  "When sending a DeleteEntity msg, the service" should {
-    "respond with the deleted User if it exists" in new Scope {
-      val id = userId
+  "When receiving an DeleteEntity msg, it" should {
+    "delete the requested Entity if no errors and return it back" in new Scope {
+      // Set expectations
+      (userRepository.remove _).expects(userId).returning(Future.successful(Some(user)))
 
-      service ! DeleteEntity(id)
+      // Send msg
+      service ! DeleteEntity(userId)
 
-      expectMsgPF() {
-        case Some(User(deletedId, _, _)) =>
-          deletedId shouldEqual id
-      }
+      // Verify
+      expectMsg(Some(user))
+    }
+    "return None if the requested Entity cannot be found" in new Scope {
+      // Set expectations
+      (userRepository.remove _).expects(userId).returning(Future.successful(None))
+
+      // Send msg
+      service ! DeleteEntity(userId)
+
+      // Verify
+      expectMsg(None)
+    }
+    "return a failure msg if there's an error while deleting the Entity" in new Scope {
+      // Set expectations
+      val unexpectedException = new Exception("BOOM!")
+      (userRepository.remove _).expects(userId).returning(Future.failed(unexpectedException))
+
+      // Send msg
+      service ! DeleteEntity(userId)
+
+      // Verify
+      expectMsgFailure(unexpectedException)
     }
   }
 
