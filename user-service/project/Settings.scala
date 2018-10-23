@@ -1,3 +1,4 @@
+import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import org.scalastyle.sbt.ScalastylePlugin.autoImport._
 import sbt.Keys._
@@ -11,7 +12,7 @@ object Settings {
     "-deprecation",
     "-language:_",
     "-Ywarn-dead-code",
-    "Xlint:unused"
+    "-Ywarn-unused:_"
   )
 
   lazy val commonJavacOptions = Seq(
@@ -19,11 +20,12 @@ object Settings {
     "-target", Versions.javaVersion,
     "-encoding", "UTF-8")
 
-  lazy val commonSettings =
+  lazy val settings =
     buildSettings ++
     compilerSettings ++
     scalafmtSettings ++
-    scalaStyleSettings
+    scalaStyleSettings ++
+    dockerSettings
 
   lazy val buildSettings = Seq(
     organization  := "ar.lregnier",
@@ -45,5 +47,10 @@ object Settings {
     Seq(
       scalastyleFailOnError := true
     )
+
+  lazy val dockerSettings = Seq(
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerRepository := Some(organization.value),
+    dockerExposedPorts := Seq(2551, 8558, 9000))
 
 }
