@@ -8,7 +8,7 @@ import ar.lregnier.akkamicroservices.common.domain.services.{ListEntities, Retri
 import ar.lregnier.akkamicroservices.testkit.domain.services.ServiceSpec
 import ar.lregnier.akkamicroservices.user.domain.model.User
 
-class UserLookupSpec extends ServiceSpec {
+class UserLookupUnitSpec extends ServiceSpec {
 
   // Fixtures
   val userId = Id(UUID.randomUUID().toString)

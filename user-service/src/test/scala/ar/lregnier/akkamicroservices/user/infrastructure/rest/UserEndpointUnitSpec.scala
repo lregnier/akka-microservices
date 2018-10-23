@@ -14,7 +14,7 @@ import ar.lregnier.user.infrastructure.rest.UserEndpoint
 import ar.lregnier.user.infrastructure.rest.UserEndpoint.{CreateUpdateUserRepresentation, UserRepresentation}
 
 // scalastyle:off
-class UserEndpointSpec extends RestEndpointSpec {
+class UserEndpointUnitSpec extends RestEndpointSpec {
 
   // Fixtures
   val userId = Id(UUID.randomUUID().toString)

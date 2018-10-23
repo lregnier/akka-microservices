@@ -9,7 +9,7 @@ import ar.lregnier.akkamicroservices.testkit.domain.services.ServiceSpec
 import ar.lregnier.akkamicroservices.user.domain.model.User
 import ar.lregnier.akkamicroservices.user.domain.services.UserManager.CreateUpdateUserPayload
 
-class UserManagerSpec extends ServiceSpec {
+class UserManagerUnitSpec extends ServiceSpec {
 
   // Fixtures
   val userId = Id(UUID.randomUUID().toString)
