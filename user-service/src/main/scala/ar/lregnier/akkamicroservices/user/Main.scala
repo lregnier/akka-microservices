@@ -2,15 +2,20 @@ import akka.routing.FromConfig
 import ar.lregnier.akkamicroservices.common.infrastructure.cluster.AkkaServer
 import ar.lregnier.akkamicroservices.common.infrastructure.rest.RestServer
 import ar.lregnier.akkamicroservices.user.domain.services.{UserLookup, UserManager}
+import ar.lregnier.akkamicroservices.user.infrastructure.persistence.UserInMemoryRepository
 import ar.lregnier.user.infrastructure.rest.UserEndpoint
 
 trait AkkaModule {
   implicit val actorSystem = AkkaServer.start()
 }
 
-trait DomainModule { self: AkkaModule =>
-  lazy val userManager = actorSystem.actorOf(FromConfig.props(UserManager.props()), UserManager.Name)
-  lazy val userLookup = actorSystem.actorOf(FromConfig.props(UserLookup.props()), UserLookup.Name)
+trait PersistenceModule {
+  lazy val userRepository = UserInMemoryRepository()
+}
+
+trait DomainModule { self: AkkaModule with PersistenceModule =>
+  lazy val userManager = actorSystem.actorOf(FromConfig.props(UserManager.props(userRepository)), UserManager.Name)
+  lazy val userLookup = actorSystem.actorOf(FromConfig.props(UserLookup.props(userRepository)), UserLookup.Name)
 }
 
 trait RestModule { self: AkkaModule with DomainModule =>
@@ -22,4 +27,4 @@ trait RestModule { self: AkkaModule with DomainModule =>
   RestServer.start(endpoints)
 }
 
-object Main extends App with AkkaModule with DomainModule with RestModule
+object Main extends App with AkkaModule with PersistenceModule with DomainModule with RestModule
