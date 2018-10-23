@@ -25,14 +25,13 @@ trait ServiceSpec
 trait ImplicitSystem { self: TestKitBase =>
   implicit val system = ActorSystem(systemName)
 
-  def systemName = s"${this.getClass().getSimpleName()}-System"
+  def systemName: String = s"${this.getClass().getSimpleName()}-System"
 }
 
 trait StopSystemAfterAll extends BeforeAndAfterAll {
   self: TestKitBase with Suite =>
 
-  override def afterAll {
+  override def afterAll: Unit =
     TestKit.shutdownActorSystem(system)
-  }
 
 }
