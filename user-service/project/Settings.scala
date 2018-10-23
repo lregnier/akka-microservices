@@ -25,6 +25,7 @@ object Settings {
     compilerSettings ++
     scalafmtSettings ++
     scalaStyleSettings ++
+    testSettings ++
     dockerSettings
 
   lazy val buildSettings = Seq(
@@ -47,6 +48,8 @@ object Settings {
     Seq(
       scalastyleFailOnError := true
     )
+
+  lazy val testSettings = Testing.settings
 
   lazy val dockerSettings = Seq(
     dockerBaseImage := "openjdk:8-jre-alpine",
