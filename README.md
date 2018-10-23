@@ -1,9 +1,13 @@
 # Akka Microservices
 
+
 The aim of this project is to show how a microservices architecture can be laid out using the [Akka] stack as its foundation.
 
+> Warning:
+> 
+> This is a Work In Progress example. So far, the structure for a single microservice has been laid out together with a set of CRUD endpoints for an example entity. Interaction between two microservices will be added next.
 
-## Microservices projects
+## Microservices platform structure
 
 The repository consists of the following individual projects:
 
